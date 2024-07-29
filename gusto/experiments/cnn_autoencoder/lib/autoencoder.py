@@ -1,5 +1,7 @@
 import torch
 
+from gusto.lib.layers import ConvLayer, LinearLayer, TransposeConvLayer
+
 
 class TimeDistributed(torch.nn.Module):
     def __init__(self, module):
@@ -21,8 +23,7 @@ class TimeEmbedding(torch.nn.Module):
     def __init__(self, input_size, output_size):
         super().__init__()
         self.layers = torch.nn.Sequential(
-            torch.nn.Linear(input_size, output_size),
-            torch.nn.ReLU(),
+            LinearLayer(input_size, output_size),
             torch.nn.Linear(output_size, output_size),
         )
 
@@ -57,34 +58,6 @@ class EncoderBlock(torch.nn.Module):
         return out
 
 
-class ConvLayer(torch.nn.Module):
-    def __init__(self, input_size, output_size, kernel_size, stride=1, padding=0):
-        super().__init__()
-        self.layer = torch.nn.Conv1d(input_size, output_size, kernel_size, stride, padding)
-        self.batchnorm = torch.nn.BatchNorm1d(output_size)
-        self.relu = torch.nn.ReLU()
-
-    def forward(self, x):
-        out = self.layer(x)
-        out = self.batchnorm(out)
-        out = self.relu(out)
-        return out
-
-
-class TransposeConvLayer(torch.nn.Module):
-    def __init__(self, input_size, output_size, kernel_size, stride=1, padding=0):
-        super().__init__()
-        self.layer = torch.nn.ConvTranspose1d(input_size, output_size, kernel_size, stride, padding)
-        self.batchnorm = torch.nn.BatchNorm1d(output_size)
-        self.relu = torch.nn.ReLU()
-
-    def forward(self, x):
-        out = self.layer(x)
-        out = self.batchnorm(out)
-        out = self.relu(out)
-        return out
-
-
 class Encoder(torch.nn.Module):
     def __init__(self, input_size, output_size):
         super().__init__()
@@ -98,8 +71,7 @@ class Encoder(torch.nn.Module):
             ConvLayer(128, 64, 3),
             ConvLayer(64, 32, 1),
             torch.nn.Flatten(),
-            torch.nn.Linear(8 * 32, output_size),
-            torch.nn.ReLU(),
+            LinearLayer(8 * 32, output_size),
         )
         self.layers = TimeDistributed(layers)
 
@@ -111,8 +83,7 @@ class Decoder(torch.nn.Module):
     def __init__(self, input_size):
         super().__init__()
         layers = torch.nn.Sequential(
-            torch.nn.Linear(input_size, 8 * 32),
-            torch.nn.ReLU(),
+            LinearLayer(input_size, 8 * 32),
             torch.nn.Unflatten(1, (32, 8)),
             TransposeConvLayer(32, 64, 1),
             TransposeConvLayer(64, 128, 3),

@@ -1,18 +1,17 @@
-'''Second version of the CNN autoencoder using the GUSTO dataset,
-using a Weighted Average of the timepoints
+'''Second experiment with the CNN autoencoder and the GUSTO dataset,
+    This experiment uses a weighted average of the timepoints.
 '''
 
 from pathlib import Path
 
 import lightning as L
 import torch
-from torch.utils.data import DataLoader
 
-from gusto.lib.data import TRAINING_DATA, VALIDATION_DATA, GustoDataset
-from gusto.experiments.cnn_autoencoder.lib.torch_lightning import LITModel
+from gusto.lib.torch_lightning import LITModel
 from gusto.experiments.cnn_autoencoder.lib.autoencoder import AutoEncoderWeightedAverage
-from gusto.experiments.cnn_autoencoder.lib.utils import get_logger
-from gusto.experiments.cnn_autoencoder.lib.utils import get_model_checkpoint_callback
+from gusto.lib.utils import get_logger, get_model_checkpoint_callback
+from gusto.experiments.cnn_autoencoder.experiment_1 import get_dataset
+from gusto.experiments.cnn_autoencoder.lib.utils import LOGDIR, CHECKPOINT_DIR
 
 torch.set_float32_matmul_precision('high')
 
@@ -33,18 +32,11 @@ if __name__ == '__main__':
     test_name = Path(__file__).stem
     trainer = L.Trainer(
         max_epochs=400,
-        logger=get_logger(test_name),
+        logger=get_logger(test_name, LOGDIR),
         accelerator='gpu',
         devices=1,
-        callbacks=[get_model_checkpoint_callback(test_name)],
+        callbacks=[get_model_checkpoint_callback(test_name, CHECKPOINT_DIR)],
     )
-    train_dataset = GustoDataset(TRAINING_DATA)
-    val_dataset = GustoDataset(VALIDATION_DATA)
-    train_dataloader = DataLoader(
-        train_dataset, batch_size=32, shuffle=True, num_workers=6, pin_memory=True
-    )
-    val_dataloader = DataLoader(
-        val_dataset, batch_size=32, shuffle=False, num_workers=6, pin_memory=True
-    )
+    train_dataloader, val_dataloader = get_dataset()
     model = LITAutoEncoder(32)
     trainer.fit(model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)

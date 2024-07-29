@@ -90,9 +90,6 @@ class MaxPoolLayer(torch.nn.Module):
 
     def forward(self, x):
         x = self.layer(x)
-        # assert (
-        #     x.shape[-1] == self.output_len
-        # ), f"Output length is {x.shape[-1]}, expected {self.output_len}"
         return x
 
 
@@ -116,9 +113,6 @@ class FlattenLayer(torch.nn.Module):
 
     def forward(self, x):
         x = self.flatten(x)
-        # assert (
-        #     x.shape[-1] == self.output_len
-        # ), f"Output length is {x.shape[-1]}, expected {self.output_len}"
         return x
 
 

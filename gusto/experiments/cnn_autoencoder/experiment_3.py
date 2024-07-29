@@ -1,4 +1,6 @@
-'''First experiment using the CNN autoencoder with the GUSTO dataset'''
+'''Third experiment with the CNN autoencoder and the GUSTO dataset,
+    This experiment interpolates the data in the time dimension.
+'''
 
 from pathlib import Path
 
@@ -7,16 +9,17 @@ import torch
 from torch.utils.data import DataLoader
 
 from gusto.lib.torch_lightning import LITModel
-from gusto.lib.data import TRAINING_DATA, VALIDATION_DATA, GustoDataset
-from gusto.lib.utils import get_logger, get_model_checkpoint_callback
+from gusto.lib.data import GustoInterpDataset, GustoDataset, TRAINING_DATA, VALIDATION_DATA
 from gusto.experiments.cnn_autoencoder.lib.autoencoder import AutoEncoder
+from gusto.lib.utils import get_logger, get_model_checkpoint_callback
 from gusto.experiments.cnn_autoencoder.lib.utils import LOGDIR, CHECKPOINT_DIR
+
 
 torch.set_float32_matmul_precision('high')
 
 
 class LITAutoEncoder(LITModel):
-    '''Lightning model for AutoEncoder using the GUSTO training dataset'''
+    '''Lightning model for AutoEncoder using the interpolation as training dataset'''
 
     def __init__(self, latent_size):
         super().__init__()
@@ -29,7 +32,7 @@ class LITAutoEncoder(LITModel):
 
 def get_dataset():
     '''Get the training and validation datasets'''
-    train_dataset = GustoDataset(TRAINING_DATA)
+    train_dataset = GustoInterpDataset(TRAINING_DATA)
     val_dataset = GustoDataset(VALIDATION_DATA)
     train_dataloader = DataLoader(
         train_dataset, batch_size=32, shuffle=True, num_workers=6, pin_memory=True
