@@ -275,6 +275,40 @@ class GustoInterpDataModule(L.LightningDataModule):
         )
 
 
+class GustoPreciseTimeDataset(GustoDataset):
+
+    def __init__(self, filepath, cpg_samples=100, x_indices=None, y_indices=None):
+        # pylint: disable=super-init-not-called
+        super().__init__(filepath, cpg_samples, x_indices, y_indices)
+        self._timepoints = None
+
+    def _normalise_timepoints(self):
+        pass  # Do not need this method for the precise time dataset
+
+    def _get_subject_data(self, idx):
+        subject_key = self.subject_ids[idx // self.num_site_samples]
+
+        data_dict = self.data[subject_key]
+        data: np.ndarray = data_dict['data'].astype(np.float32)
+        mask: np.ndarray = data_dict['mask'].astype(np.float32)
+        timepoints: np.ndarray = data_dict['time'][:, 0].astype(np.float32)
+        return data, mask, timepoints
+
+    def __getitem__(self, idx):
+        data, _, timepoints = self._get_subject_data(idx)
+        sites = self._get_sites(idx)
+        x_indices = self.x_indices
+        y_indices = self.y_indices
+        input_idx_array = np.ix_(sites, x_indices)
+        target_idx_array = np.ix_(sites, y_indices)
+        time_in = timepoints[x_indices]
+        time_out = timepoints[y_indices]
+        input_data = data[input_idx_array].T[:, np.newaxis, :]
+        target_data = data[target_idx_array].T[:, np.newaxis, :]
+
+        return (input_data, time_in, time_out), target_data
+
+
 class GustoSingleCpGDataset(GustoDataset):
     '''Dataset class for GUSTO data where each example is a single GpG site'''
 
@@ -348,3 +382,10 @@ class GustoSingleCpGDatasetZeroMissing(GustoSingleCpGDataset):
         target_data = self._data[idx, self.y_indices]
 
         return (input_data, time_in, time_out), target_data
+
+
+if __name__ == '__main__':
+
+    dataset = GustoPreciseTimeDataset(TRAINING_DATA)
+    print(f'Number of subjects: {dataset.num_subjects}')
+    print(f'First example: {dataset[0]}')

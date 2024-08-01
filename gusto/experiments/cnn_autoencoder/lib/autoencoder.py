@@ -1,3 +1,4 @@
+import math
 import torch
 
 from gusto.lib.layers import ConvLayer, LinearLayer, TransposeConvLayer
@@ -126,6 +127,60 @@ class AutoEncoder(torch.nn.Module):
         # Decode
         x = self.decoder(x)
         return x
+
+
+class AutoEncoderPEEncoding(AutoEncoder):
+    def __init__(self, latent_size):
+        super().__init__(latent_size)
+        self.time_embedding = PositionalEncoding(latent_size)
+
+    def forward(self, x: torch.Tensor, t_in: torch.Tensor, t_out: torch.Tensor):
+        # Encode data
+        x = self.encoder(x)
+        # Add time embedding to latent representation
+        x = self.time_embedding(x, t_in)
+        # Apply LSTM
+        _, (h, _) = self.time_encoder(x)
+        # expand final hidden state
+        x = h.transpose(0, 1).expand(t_out.size(0), t_out.size(1), -1)
+        # Add output time embedding
+        x = self.time_embedding.reverse(x, t_out)
+        # Decode
+        x = self.decoder(x)
+        return x
+
+
+class PositionalEncoding(torch.nn.Module):
+    '''PositionalEncoding for the AutoRegressiveModel.'''
+
+    def __init__(self, d_model: int = 64):
+        super().__init__()
+        self.d_model = d_model
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        self.register_buffer('div_term', div_term)
+
+    def _get_pe(self, pos: torch.Tensor) -> torch.Tensor:
+        pe = torch.zeros(pos.size(0), pos.size(1), self.d_model).to(pos.device)
+        pe[:, :, 0::2] = torch.sin(pos.unsqueeze(-1) * self.div_term)
+        pe[:, :, 1::2] = torch.cos(pos.unsqueeze(-1) * self.div_term)
+        return pe
+
+    def forward(self, x: torch.Tensor, pos: torch.Tensor) -> torch.Tensor:
+        '''
+        Arguments:
+            x: Tensor, shape ``[batch_size, seq_len, embedding_dim]``
+            time: Tensor, shape ``[batch_size, seq_len]
+        '''
+        pe = self._get_pe(pos)
+        return x + pe
+
+    def reverse(self, x: torch.Tensor, pos: torch.Tensor) -> torch.Tensor:
+        '''
+        Arguments:
+            x: Tensor, shape ``[batch_size, seq_len, embedding_dim]``
+        '''
+        pe = self._get_pe(pos)
+        return x - pe
 
 
 class AutoEncoderWeightedAverage(AutoEncoder):

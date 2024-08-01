@@ -265,6 +265,10 @@ class CoderBlockB(torch.nn.Module):
 
 class TimeDistributed(torch.nn.Module):
 
+    def forward(self, x):
+        '''Runs forward pass'''
+        raise NotImplementedError
+
     def forward_reshape(self, x):
         '''Reshape input tensor to (samples * timesteps, ...)'''
         samples, timesteps = x.shape[:2]
