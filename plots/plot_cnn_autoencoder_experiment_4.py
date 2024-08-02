@@ -51,6 +51,7 @@ sns.lineplot(
 plt.xlabel('Epochs')
 plt.ylabel('RMSE')
 plt.legend()
+# plt.ylim(0, 0.45)
 
 # Save the plot
-plt.savefig('plot_experiments_4.png')
+plt.savefig(Path(__file__).parent.parent.joinpath('docs', 'cnn_autoencoder_experiments_4.png'))

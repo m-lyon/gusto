@@ -49,6 +49,7 @@ sns.lineplot(
 plt.xlabel('Epochs')
 plt.ylabel('RMSE')
 plt.legend()
+plt.ylim(0, 0.45)
 
 # Save the plot
-plt.savefig('dict_learning_experiments_1_to_3.png')
+plt.savefig(Path(__file__).parent.parent.joinpath('docs', 'dict_learning_experiments_1_to_3.png'))

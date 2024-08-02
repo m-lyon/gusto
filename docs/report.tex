@@ -146,7 +146,20 @@ Below are the experiments that were run using the dictionary learning approach. 
 
 \paragraph{Experiment 2} This experiment uses the same model as in Experiment 1, but with a dataset only consisting of examples with no missing data. Whilst the model performance was marginally better for most of the training, the model began to overfit around the 500 epoch mark. The code for this experiment is located in \texttt{experiment\_2.py}.
 
-\paragraph{Experiment 3} This experiment uses a higher parameter LSTM model, and adds a periodic time encoding to the input and output of the LSTM. Specifically, this time encoding is a sinusoidal projection of the time dimension, as described as the positional encoding in \cite{vaswani2017attention}.
+\paragraph{Experiment 3} This experiment uses a slightly higher parameter LSTM model, and adds a periodic time encoding to the input and output of the LSTM. Specifically, this time encoding is a sinusoidal projection of the time dimension, as described as the positional encoding in \cite{vaswani2017attention}. The number of trainable parameters within this LSTM is 10.5K. The code for this experiment is located in \texttt{experiment\_3.py}. This modification substantially improved performance, with a validation loss of around 0.1.
+
+\paragraph{Experiment 4} Given the relative success of Experiment 3, this experiment plots the training and validation curves for varying latent space sizes using the same model. The code for this experiment is located in \texttt{experiment\_4.py}. The results of this experiment are shown in \Cref{fig:losses_dict_latent_space}.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{dict_learning_experiments_4.png}
+  \caption{Training and validation losses for model proposed in Experiment 3, with varying latent space sizes. Dotted lines indicate the training loss, and solid lines indicate the validation loss.}
+  \label{fig:losses_dict_latent_space}
+\end{figure}
+
+\section{Large Data Model Development}
+
+This section details the development of a model using the full number of CpG sites available.
 
 \bibliography{references}
 \end{document}
