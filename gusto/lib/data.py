@@ -20,6 +20,16 @@ VALIDATION_DATA = DATA_DIR.joinpath('3-9-48-72months_383CpGs_153indivs_val.pkl')
 VALIDATION_DATA_NOMISSING = DATA_DIR.joinpath('3-9-48-72months_383CpGs_153indivs_val_nomissing.pkl')
 TEST_DATA = DATA_DIR.joinpath('3-9-48-72months_383CpGs_153indivs_test.pkl')
 
+FULL_3M_DATA = DATA_DIR.joinpath(
+    'EPIC850k-GUSTO-Buccal-3m-760446probes-202samples-Noob-BMIQ-beta.txt'
+)
+FULL_9M_DATA = DATA_DIR.joinpath(
+    'EPIC850k-GUSTO-Buccal-9m-760446probes-314samples-Noob-BMIQ-beta.txt'
+)
+FULL_48M_DATA = DATA_DIR.joinpath(
+    'EPIC850k-GUSTO-Buccal-48m-760446probes-336samples-Noob-BMIQ-beta.txt'
+)
+
 
 class GustoDataset(Dataset):
     '''Dataset class for GUSTO data'''
