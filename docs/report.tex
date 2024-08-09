@@ -72,7 +72,7 @@ This is a report on the analysis of the GUSTO data.
 
 \section{Initial Model Development} \label{sec:initial_model}
 
-These experiments use only a small subset of CpG sites as a pilot study. Specifically, only 383 CpG sites are used within these experiments. Each subject has 4 time points: 3 months, 9 months, 42 months, and 72 months. In this setting, the 3, 9, and 42 months are used to predict the 72nd month. The data are split into training, validation, and test sets with a 80/10/10 split.
+These experiments use only a small subset of CpG sites as a pilot study. Specifically, only 383 CpG sites are used within these experiments. Each subject has 4 timepoints: 3 months, 9 months, 42 months, and 72 months. In this setting, the 3, 9, and 42 months are used to predict the 72nd month. The data are split into training, validation, and test sets with an 80/10/10 split.
 
 \subsection{Time-series Autoencoder}
 
@@ -85,7 +85,7 @@ Below are the experiments that were run. The code for each experiment is located
 
 \paragraph{Experiment 2} This experiment uses the same model as Experiment 1, but applies a weighting to the input timepoints as a function of the distance (in time) from the target timepoint. The code for this experiment is located in \texttt{experiment\_2.py}. This modification did not improve the performance of the model.
 
-\paragraph{Experiment 3} This experiment uses the same model as Experiment 1, but interpolates the time dimension of the data. This is done by using a continuously differentiable sub-spline built from piecewise cubic polynomials, known as Akima splines, and implemented in \href{https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html\#scipy.interpolate.Akima1DInterpolator}{scipy}. The data are then resampled using a perturbation in the time dimension of the original 3, 9, and 42 month timepoints. The perturbation is drawn from a Gaussian distribution with a mean of 0 and a standard deviation of 3 months. The code for this experiment is located in \texttt{experiment\_3.py}. The rationale behind this was to allow the model to learn a more continuous representation of the time dimension. This modification did not improve the performance of the model.
+\paragraph{Experiment 3} This experiment uses the same model as Experiment 1, but interpolates the time dimension of the data. This is done by using a continuously differentiable sub-spline built from piecewise cubic polynomials, known as Akima splines, and implemented in \href{https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html\#scipy.interpolate.Akima1DInterpolator}{scipy}. The data are then resampled using a perturbation in the time dimension of the original 3-, 9-, and 42-month timepoints. The perturbation is drawn from a Gaussian distribution with a mean of 0 and a standard deviation of 3 months. The code for this experiment is located in \texttt{experiment\_3.py}. The rationale behind this was to allow the model to learn a more continuous representation of the time dimension. This modification did not improve the performance of the model.
 
 \begin{figure}
   \centering
@@ -153,13 +153,32 @@ Below are the experiments that were run using the dictionary learning approach. 
 \begin{figure}
   \centering
   \includegraphics[width=\columnwidth]{dict_learning_experiments_4.png}
-  \caption{Training and validation losses for model proposed in Experiment 3, with varying latent space sizes. Dotted lines indicate the training loss, and solid lines indicate the validation loss.}
+  \caption{Training and validation losses for the model proposed in Experiment 3, with varying latent space sizes. Dotted lines indicate the training loss, and solid lines indicate the validation loss.}
   \label{fig:losses_dict_latent_space}
 \end{figure}
 
 \section{Large Data Model Development}
 
-This section details the development of a model using the full number of CpG sites available.
+This section details the development of a model using the full number of CpG sites available. At the time of writing, only the 3-month, 9-month, and 48-month timepoints are available. Thus, the 3- and 9-month timepoints are used to predict the 48-month timepoint. This dataset consists of 760,446 CpG sites and 172 subjects. The data are split into training and validation at a 90/10 split across subjects.
+
+\subsection{U-Net}
+
+This set of experiments uses a U-Net architecture to predict the 48-month timepoint from the 3- and 9-month timepoints. The U-Net architecture consists of an encoder and decoder, with skip connections between the encoder and decoder. The data is reshaped into a 2D image, with the channel dimension representing the timepoints, and the spatial dimensions representing the CpG sites. The encoder and decoder use 2D convolutions, and the model is trained using an $\ell_{1}$ loss function. The optimiser AdamW is used with a learning rate of $0.001$. The code for this experiment is located in the \texttt{gusto/experiments/unet} directory.
+
+\subsubsection{Experiments}
+
+Below are the experiments that were run using the U-Net architecture. The training and validation losses for each of the models are shown in \Cref{fig:losses_unet}.
+
+\paragraph{Experiment 1} This experiment trains the U-Net model with hyperparameters and architecture as specified in \citet{ronneberger2015u}. Specifically, the model takes an input of size $2 \times 256 \times 256$, produces an output of size $1 \times 256 \times 256$, and has 7.8M trainable parameters. The 760,446 CpG sites are split into independent training examples of size $ 256 \times 256 = 65536$, where some sites are reused to produce a dataset size that is divisible by the image size. The code for this experiment is located in \texttt{experiment\_1.py}.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{unet_experiments_1_to_.png}
+  \caption{Training and validation losses for the model proposed in Experiment 1 and 2. The curves shown are from training runs which yielded the lowest validation loss. Dotted lines indicate the training loss, and solid lines indicate the validation loss.}
+  \label{fig:losses_unet}
+\end{figure}
+
+% \paragraph{Experiment 2} This experiment uses the same model as in Experiment 1, but with 4 input channels, where the additional channels are the 3- and 9-month CpG sites transformed via a Fourier transform into the frequency domain. The rationale behind this is that due to the random arrangement of CpG sites into a 2D image, much of the signal would be 
 
 \bibliography{references}
 \end{document}
