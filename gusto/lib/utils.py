@@ -41,3 +41,15 @@ def get_model_checkpoint_callback(test_name: str, chkpoint_dir: Path):
         save_top_k=3,
         monitor='val_loss',
     )
+
+
+def get_best_checkpoint(checkpoint_dir: Path, reduce: str = 'min') -> str:
+    '''Get the best checkpoint from a directory.'''
+    checkpoints = list(Path(checkpoint_dir).glob('*.ckpt'))
+    if not checkpoints:
+        raise ValueError(f'No checkpoints found in {checkpoint_dir}.')
+    if reduce == 'min':
+        return min(checkpoints, key=lambda x: float(x.stem.split('=')[-1])).as_posix()
+    if reduce == 'max':
+        return max(checkpoints, key=lambda x: float(x.stem.split('=')[-1])).as_posix()
+    raise ValueError(f'Invalid reduce value {reduce}. Use "min" or "max".')

@@ -167,9 +167,11 @@ This set of experiments uses a U-Net architecture to predict the 48-month timepo
 
 \subsubsection{Experiments}
 
-Below are the experiments that were run using the U-Net architecture. The training and validation losses for each of the models are shown in \Cref{fig:losses_unet}.
+Below are the experiments that were run using the U-Net architecture. The training and validation losses for each of the models are shown in \Cref{fig:losses_unet}, as well as a baseline training run using the dictionary learning method with a latent size of $128$ and regressing the 48-month timepoint from the 3- and 9-month timepoints.
 
-\paragraph{Experiment 1} This experiment trains the U-Net model with hyperparameters and architecture as specified in \citet{ronneberger2015u}. Specifically, the model takes an input of size $2 \times 256 \times 256$, produces an output of size $1 \times 256 \times 256$, and has 7.8M trainable parameters. The 760,446 CpG sites are split into independent training examples of size $ 256 \times 256 = 65536$, where some sites are reused to produce a dataset size that is divisible by the image size. The code for this experiment is located in \texttt{experiment\_1.py}.
+\paragraph{Experiment 1} This experiment trains the U-Net model with hyperparameters and architecture as specified in \citet{ronneberger2015u}. Specifically, the model takes an input of size $2 \times 256 \times 256$, produces an output of size $1 \times 256 \times 256$, and has 7.8M trainable parameters. The 760,446 CpG sites are split into independent training examples of size $ 256 \times 256 = 65536$, where some sites are reused to produce a dataset size that is divisible by the image size. The code for this experiment is located in \texttt{experiment\_1.py}. The model was trained over multiple runs, for 50 epochs, and the best training and validation losses are shown in \Cref{fig:losses_unet}. The model achieved a validation loss of around $0.05$, which was lower than the dictionary learning baseline, despite the orders of magnitude increase in the number of CpG sites.
+
+\paragraph{Experiment 2} This experiment uses the best-trained model from Experiment 1, and performs channel-wise pruning of 20\% and 40\% based on the $\ell_{1}$ norm of the weights. The rationale behind this was to perform a preliminary investigation of potential model compression techniques. The code for this experiment is located in \texttt{experiment\_2.py}.
 
 \begin{figure}
   \centering
