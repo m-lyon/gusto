@@ -70,7 +70,7 @@ if __name__ == '__main__':
     model = AleotoricUNet()
     train_dataloaders, val_dataloaders = get_dataset()
     trainer = L.Trainer(
-        max_epochs=100,
+        max_epochs=300,
         logger=get_logger_reruns(test_name, LOGDIR),
         accelerator='gpu',
         devices=1,
