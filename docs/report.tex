@@ -171,13 +171,20 @@ Below are the experiments that were run using the U-Net architecture. The traini
 
 \paragraph{Experiment 1} This experiment trains the U-Net model with hyperparameters and architecture as specified in \citet{ronneberger2015u}. Specifically, the model takes an input of size $2 \times 256 \times 256$, produces an output of size $1 \times 256 \times 256$, and has 7.8M trainable parameters. The 760,446 CpG sites are split into independent training examples of size $ 256 \times 256 = 65536$, where some sites are reused to produce a dataset size that is divisible by the image size. The code for this experiment is located in \texttt{experiment\_1.py}. The model was trained over multiple runs, for 50 epochs, and the best training and validation losses are shown in \Cref{fig:losses_unet}. The model achieved a validation loss of around $0.05$, which was lower than the dictionary learning baseline, despite the orders of magnitude increase in the number of CpG sites.
 
-\paragraph{Experiment 2} This experiment uses the best-trained model from Experiment 1, and performs channel-wise pruning of 20\% and 40\% based on the $\ell_{1}$ norm of the weights. The rationale behind this was to perform a preliminary investigation of potential model compression techniques. The code for this experiment is located in \texttt{experiment\_2.py}.
+\paragraph{Experiment 2} This experiment uses the best-trained model from Experiment 1, and performs channel-wise pruning of 20\% and 40\% based on the $\ell_{1}$ norm of the weights. The rationale behind this was to perform a preliminary investigation of potential model compression techniques. The code for this experiment is located in \texttt{experiment\_2.py}. The results of the experiment show that pruning the model in both cases led to a small drop in validation performance compared to the unpruned model.
 
 \begin{figure}
   \centering
   \includegraphics[width=\columnwidth]{unet_experiments_1_to_.png}
   \caption{Training and validation losses for the model proposed in Experiment 1 and 2. The curves shown are from training runs which yielded the lowest validation loss. Dotted lines indicate the training loss, and solid lines indicate the validation loss.}
   \label{fig:losses_unet}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{unet_pred.png}
+  \caption{Ground truth and predicted CpG sites for 48 months reshaped into an image. The predicted output is from the model trained in Experiment 1.}
+  \label{fig:unet_pred}
 \end{figure}
 
 % \paragraph{Experiment 2} This experiment uses the same model as in Experiment 1, but with 4 input channels, where the additional channels are the 3- and 9-month CpG sites transformed via a Fourier transform into the frequency domain. The rationale behind this is that due to the random arrangement of CpG sites into a 2D image, much of the signal would be 

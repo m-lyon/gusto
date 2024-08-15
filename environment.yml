@@ -1,12 +1,19 @@
 name: gusto
 channels:
   - defaults
+  - nvidia
+  - conda-forge
+  - pytorch
 dependencies:
   - python=3.12
   - torchvision
   - pytorch
   - torchaudio
   - pytorch-cuda=12.1
+  - lightning
+  - tensorboard
+  - pandas
   - ipykernel
   - seaborn
+  - scipy
 prefix: /home/matt/anaconda3/envs/gusto

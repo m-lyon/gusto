@@ -1,4 +1,5 @@
 '''Third UNet experiment with 2D data.
+
 This experiment trains a mean and variance model.
 '''
 
@@ -69,7 +70,7 @@ if __name__ == '__main__':
     model = AleotoricUNet()
     train_dataloaders, val_dataloaders = get_dataset()
     trainer = L.Trainer(
-        max_epochs=50,
+        max_epochs=100,
         logger=get_logger_reruns(test_name, LOGDIR),
         accelerator='gpu',
         devices=1,

@@ -1,0 +1,6 @@
+[lint]
+select = ["E", "F", "PL", "D"]
+ignore = ["D300"]
+
+[format]
+quote-style = "preserve"
