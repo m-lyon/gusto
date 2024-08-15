@@ -1,0 +1,12 @@
+name: gusto
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - torchvision
+  - pytorch
+  - torchaudio
+  - pytorch-cuda=12.1
+  - ipykernel
+  - seaborn
+prefix: /home/matt/anaconda3/envs/gusto
