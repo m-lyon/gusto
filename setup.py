@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''Use this to install module'''
+'''Use this to install module.'''
 
 from pathlib import Path
 from setuptools import setup, find_namespace_packages
@@ -23,4 +23,5 @@ setup(
     license='MIT License',
     packages=find_namespace_packages(),
     install_requires=install_deps,
+    scripts=['gusto/bin/gusto_check_data.py'],
 )
