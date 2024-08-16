@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Tuple
 
 import torch
+import torchmetrics
 
 import lightning as L
 
@@ -31,6 +32,7 @@ class AleotoricUNet(LITModel):
         self.variance_decoder = UNetDecoder()
         self.mean_encoder = UNetEncoder()
         self.variance_encoder = UNetEncoder()
+        self.variance_metric = torchmetrics.MeanMetric()
         # Freeze variance weights
         for param in self.variance_encoder.parameters():
             param.requires_grad = False
@@ -40,10 +42,6 @@ class AleotoricUNet(LITModel):
     @property
     def loss_func(self):
         return torch.nn.GaussianNLLLoss()
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=5e-3)
-        return optimizer
 
     def training_step(self, train_batch, *args):
         inputs, target = train_batch
@@ -61,6 +59,7 @@ class AleotoricUNet(LITModel):
 
         if not self.trainer.sanity_checking:
             self.val_metric.update(pred_mean, target)
+            self.variance_metric.update(pred_var)
         return loss
 
     def on_train_epoch_end(self):
@@ -71,6 +70,17 @@ class AleotoricUNet(LITModel):
                 param.requires_grad = True
             for param in self.variance_decoder.parameters():
                 param.requires_grad = True
+
+    def on_validation_epoch_end(self):
+        if not self.trainer.sanity_checking:
+            self.logger.experiment.add_scalars(
+                'epoch_loss', {'validation': self.val_metric.compute()}, self.current_epoch
+            )
+            self.log('val_loss', self.val_metric.compute(), on_step=False)
+            self.logger.experiment.add_scalars(
+                'epoch_variance', {'validation': self.variance_metric.compute()}, self.current_epoch
+            )
+            self.val_metric.reset()
 
     def forward(self, x: torch.Tensor, mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         '''Forward pass.'''
