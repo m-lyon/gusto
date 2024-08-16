@@ -19,6 +19,8 @@ from gusto.experiments.unet.experiment_1 import UNetEncoder, UNetDecoder, get_da
 
 torch.set_float32_matmul_precision('high')
 
+WARMUP_EPOCHS = 25
+
 
 class AleotoricUNet(LITModel):
     '''Aleotoric UNet model.'''
@@ -38,6 +40,10 @@ class AleotoricUNet(LITModel):
     @property
     def loss_func(self):
         return torch.nn.GaussianNLLLoss()
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.AdamW(self.parameters(), lr=5e-3)
+        return optimizer
 
     def training_step(self, train_batch, *args):
         inputs, target = train_batch
@@ -60,7 +66,7 @@ class AleotoricUNet(LITModel):
     def on_train_epoch_end(self):
         super().on_train_epoch_end()
         # Unfreeze variance weights after 50 epochs
-        if self.current_epoch == 50:
+        if self.current_epoch == WARMUP_EPOCHS:
             for param in self.variance_encoder.parameters():
                 param.requires_grad = True
             for param in self.variance_decoder.parameters():
@@ -84,7 +90,7 @@ if __name__ == '__main__':
     model = AleotoricUNet()
     train_dataloaders, val_dataloaders = get_dataset()
     trainer = L.Trainer(
-        max_epochs=300,
+        max_epochs=50,
         logger=get_logger_reruns(test_name, LOGDIR),
         accelerator='gpu',
         devices=1,
