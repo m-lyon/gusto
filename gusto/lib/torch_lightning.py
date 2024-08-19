@@ -9,7 +9,6 @@ from lightning.pytorch.loggers import TensorBoardLogger
 
 
 class LITModel(L.LightningModule):
-
     def __init__(self):
         super().__init__()
         self.train_metric = self.metric_func()
@@ -22,6 +21,7 @@ class LITModel(L.LightningModule):
 
     @property
     def loss_func(self):
+        '''Loss function to use for training.'''
         return F.l1_loss
 
     def configure_optimizers(self):

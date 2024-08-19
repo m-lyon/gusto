@@ -1,4 +1,4 @@
-'''Dataset classes for GUSTO data'''
+'''Dataset classes for GUSTO data.'''
 
 import math
 from pathlib import Path
@@ -32,7 +32,7 @@ FULL_48M_DATA = DATA_DIR.joinpath(
 
 
 class GustoDataset(Dataset):
-    '''Dataset class for GUSTO data'''
+    '''Dataset class for GUSTO data.'''
 
     def __init__(self, filepath, cpg_samples=100, x_indices=None, y_indices=None):
         self.cpg_samples = cpg_samples
@@ -286,7 +286,6 @@ class GustoInterpDataModule(L.LightningDataModule):
 
 
 class GustoPreciseTimeDataset(GustoDataset):
-
     def __init__(self, filepath, cpg_samples=100, x_indices=None, y_indices=None):
         # pylint: disable=super-init-not-called
         super().__init__(filepath, cpg_samples, x_indices, y_indices)
@@ -395,7 +394,6 @@ class GustoSingleCpGDatasetZeroMissing(GustoSingleCpGDataset):
 
 
 if __name__ == '__main__':
-
     dataset = GustoPreciseTimeDataset(TRAINING_DATA)
     print(f'Number of subjects: {dataset.num_subjects}')
     print(f'First example: {dataset[0]}')

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Tuple
 
 import torch
+import torchmetrics
 
 import lightning as L
 
@@ -19,6 +20,8 @@ from gusto.experiments.unet.experiment_1 import UNetEncoder, UNetDecoder, get_da
 
 torch.set_float32_matmul_precision('high')
 
+WARMUP_EPOCHS = 25
+
 
 class AleotoricUNet(LITModel):
     '''Aleotoric UNet model.'''
@@ -29,6 +32,12 @@ class AleotoricUNet(LITModel):
         self.variance_decoder = UNetDecoder()
         self.mean_encoder = UNetEncoder()
         self.variance_encoder = UNetEncoder()
+        self.variance_metric = torchmetrics.MeanMetric()
+        # Freeze variance weights
+        for param in self.variance_encoder.parameters():
+            param.requires_grad = False
+        for param in self.variance_decoder.parameters():
+            param.requires_grad = False
 
     @property
     def loss_func(self):
@@ -50,7 +59,28 @@ class AleotoricUNet(LITModel):
 
         if not self.trainer.sanity_checking:
             self.val_metric.update(pred_mean, target)
+            self.variance_metric.update(pred_var)
         return loss
+
+    def on_train_epoch_end(self):
+        super().on_train_epoch_end()
+        # Unfreeze variance weights after 50 epochs
+        if self.current_epoch == WARMUP_EPOCHS:
+            for param in self.variance_encoder.parameters():
+                param.requires_grad = True
+            for param in self.variance_decoder.parameters():
+                param.requires_grad = True
+
+    def on_validation_epoch_end(self):
+        if not self.trainer.sanity_checking:
+            self.logger.experiment.add_scalars(
+                'epoch_loss', {'validation': self.val_metric.compute()}, self.current_epoch
+            )
+            self.log('val_loss', self.val_metric.compute(), on_step=False)
+            self.logger.experiment.add_scalars(
+                'epoch_variance', {'validation': self.variance_metric.compute()}, self.current_epoch
+            )
+            self.val_metric.reset()
 
     def forward(self, x: torch.Tensor, mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         '''Forward pass.'''
@@ -70,7 +100,7 @@ if __name__ == '__main__':
     model = AleotoricUNet()
     train_dataloaders, val_dataloaders = get_dataset()
     trainer = L.Trainer(
-        max_epochs=300,
+        max_epochs=100,
         logger=get_logger_reruns(test_name, LOGDIR),
         accelerator='gpu',
         devices=1,

@@ -1,4 +1,4 @@
-'''UNet dataset'''
+'''UNet dataset.'''
 
 from math import ceil, prod
 
@@ -24,9 +24,10 @@ class UNetDataset(Dataset):
         x_indices=None,
         y_indices=None,
     ):
-        '''
+        '''Initialize the dataset.
 
         Args:
+        ----
             start: start of the dataset as a percentage
             end: end of the dataset as a percentage
             dims: dimension to reshape the CpG sites into

@@ -68,7 +68,7 @@
 
 \section{Introduction}
 
-This is a report on the analysis of the GUSTO data. The code for the analysis is located at \url{https://github.com/m-lyon/gusto}.
+This is a report on the analysis of the GUSTO data. The code for the analysis is located at \url{https://github.com/m-lyon/gusto}. The analysis is split into two parts: the initial model development, which uses a small subset of CpG sites, and the large data model development, which uses the full number of CpG sites available. The initial model development uses an autoencoder and dictionary learning approach, whilst the large data model development uses a U-Net architecture. The results of the experiments are detailed in the following sections.
 
 \section{Initial Model Development} \label{sec:initial_model}
 
@@ -169,16 +169,16 @@ This set of experiments uses a U-Net architecture to predict the 48-month timepo
 
 Below are the experiments that were run using the U-Net architecture. The training and validation losses for each of the models are shown in \Cref{fig:losses_unet}, as well as a baseline training run using the dictionary learning method with a latent size of $128$ and regressing the 48-month timepoint from the 3- and 9-month timepoints.
 
-\paragraph{Experiment 1} This experiment trains the U-Net model with hyperparameters and architecture as specified in \citet{ronneberger2015u}. Specifically, the model takes an input of size $2 \times 256 \times 256$, produces an output of size $1 \times 256 \times 256$, and has 7.8M trainable parameters. The 760,446 CpG sites are split into independent training examples of size $ 256 \times 256 = 65536$, where some sites are reused to produce a dataset size that is divisible by the image size. The code for this experiment is located in \texttt{experiment\_1.py}. The model was trained over multiple runs, for 50 epochs, and the best training and validation losses are shown in \Cref{fig:losses_unet}. The model achieved a validation loss of around $0.05$, which was lower than the dictionary learning baseline, despite the orders of magnitude increase in the number of CpG sites.
-
-\paragraph{Experiment 2} This experiment uses the best-trained model from Experiment 1, and performs channel-wise pruning of 20\% and 40\% based on the $\ell_{1}$ norm of the weights. The rationale behind this was to perform a preliminary investigation of potential model compression techniques. The code for this experiment is located in \texttt{experiment\_2.py}. The results of the experiment show that pruning the model in both cases led to a small drop in validation performance compared to the unpruned model.
-
 \begin{figure}
   \centering
-  \includegraphics[width=\columnwidth]{unet_experiments_1_to_.png}
+  \includegraphics[width=\columnwidth]{unet_experiments_1_to_2.png}
   \caption{Training and validation losses for the model proposed in Experiment 1 and 2. The curves shown are from training runs which yielded the lowest validation loss. Dotted lines indicate the training loss, and solid lines indicate the validation loss.}
   \label{fig:losses_unet}
 \end{figure}
+
+\paragraph{Experiment 1} This experiment trains the U-Net model with hyperparameters and architecture as specified in \citet{ronneberger2015u}. Specifically, the model takes an input of size $2 \times 256 \times 256$, produces an output of size $1 \times 256 \times 256$, and has 7.8M trainable parameters. The 760,446 CpG sites are split into independent training examples of size $ 256 \times 256 = 65536$, where some sites are reused to produce a dataset size that is divisible by the image size. The code for this experiment is located in \texttt{experiment\_1.py}. The model was trained over multiple runs, for 50 epochs, and the best training and validation losses are shown in \Cref{fig:losses_unet}. The model achieved a validation loss of around $0.05$, which was lower than the dictionary learning baseline, despite the orders of magnitude increase in the number of CpG sites.
+
+\paragraph{Experiment 2} This experiment uses the best-trained model from Experiment 1, and performs channel-wise pruning of 20\% and 40\% based on the $\ell_{1}$ norm of the weights. The rationale behind this was to perform a preliminary investigation of potential model compression techniques. The code for this experiment is located in \texttt{experiment\_2.py}. The results of the experiment show that pruning the model in both cases led to a small drop in validation performance compared to the unpruned model.
 
 \begin{figure}
   \centering
@@ -187,7 +187,18 @@ Below are the experiments that were run using the U-Net architecture. The traini
   \label{fig:unet_pred}
 \end{figure}
 
-% \paragraph{Experiment 2} This experiment uses the same model as in Experiment 1, but with 4 input channels, where the additional channels are the 3- and 9-month CpG sites transformed via a Fourier transform into the frequency domain. The rationale behind this is that due to the random arrangement of CpG sites into a 2D image, much of the signal would be 
+\paragraph{Experiment 3} This experiment introduces some probabilistic modelling, specifically by modelling the aleatoric uncertainty through a mean-variance estimation (MVE) model. Here, two identical U-Net models are trained, one to predict the mean of the 48-month timepoint, and the other to predict the variance. The loss function used is the negative log-likelihood of the Gaussian distribution, and the model is trained using the AdamW optimiser with a learning rate of $0.005$. As recommended in \citet{sluijterman2024optimal}, the mean model is trained first in a warmup phase, and both the variance and mean models are trained together in a second phase. In this experiment, the warmup phase lasted for 25 epochs. The code for this experiment is located in \texttt{experiment\_3.py}. The results from the best-performing training run are shown in \Cref{fig:losses_unet_var}. Notably, the variance model often did not converge, suggesting that this model requires further investigation into the training dynamics.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{unet_experiments_3.png}
+  \caption{Training RMSE, validation RMSE, and validation variance for the model proposed in Experiment 3. Variance training begins at epoch 25.}
+  \label{fig:losses_unet_var}
+\end{figure}
+
+\subsection{Conclusion}
+
+This report details the development of models to predict a future timepoint of CpG sites from previous timepoints. The initial models used a small subset of CpG sites, and the best-performing model was a dictionary learning model with a latent space size of 128. The large data model used a U-Net architecture, and the best-performing model achieved a validation loss of around 0.05. Notably, the U-Net model provides a proof-of-concept analysis that demonstrates the feasibility of modelling CpG site data as images and using convolutional neural networks to predict future timepoints.
 
 \bibliography{references}
 \end{document}
